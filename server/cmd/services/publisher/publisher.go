@@ -2,28 +2,27 @@ package services
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/domain"
 	"github.com/sirupsen/logrus"
 )
 
-// Publisher ...
+// Publisher is the concrete implementation for the Publisher
 type Publisher struct {
 	log      *logrus.Logger
 	topicSvc domain.TopicServicesIF
 }
 
-// PublisherIF ...
+// PublisherIF is the interface for the Publisher service
 type PublisherIF interface {
-	ShowTopics(ctx context.Context) ([]string, error)
-	ConnectToTopic(ctx context.Context, publisherID int, topicName string) error
-	DisconnectFromTopic(ctx context.Context, id int) error
-	PublishMessage(ctx context.Context, msg string) error
-	CheckMessageStatus(ctx context.Context, msg string) (string, error)
+	ShowTopics(ctx context.Context, in *ShowTopicRequest) (*ShowTopicResponse, error)
+	ConnectToTopic(ctx context.Context, in *ConnectToTopicRequest) (*ConnectToTopicResponse, error)
+	DisconnectFromTopic(ctx context.Context, in *DisconnectFromTopicRequest) (*DisconnectFromTopicResponse, error)
+	PublishMessage(ctx context.Context, in *PublishMessageRequest) (*PublishMessageResponse, error)
+	CheckMessageStatus(ctx context.Context, in *CheckMessageStatusRequest) (*CheckMessageStatusResponse, error)
 }
 
-// NewPublisher ...
+// NewPublisher is the factory function for the Publisher type
 func NewPublisher(log *logrus.Logger, topic domain.TopicServicesIF) PublisherIF {
 	return &Publisher{
 		log:      log,
@@ -32,48 +31,26 @@ func NewPublisher(log *logrus.Logger, topic domain.TopicServicesIF) PublisherIF 
 }
 
 // ShowTopics ...
-func (p *Publisher) ShowTopics(ctx context.Context) ([]string, error) {
-
-	fmt.Println("HEllo")
-	topics, err := p.topicSvc.GetTopics(ctx)
-	if err != nil {
-		return []string{}, err
-	}
-	return topics, nil
+func (p *Publisher) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*ShowTopicResponse, error) {
+	return &ShowTopicResponse{}, nil
 }
 
 // ConnectToTopic ...
-func (p *Publisher) ConnectToTopic(ctx context.Context, publisherID int, topicName string) error {
-	err := p.topicSvc.AddPublisherToTopic(ctx, publisherID, topicName)
-	if err != nil {
-		return err
-	}
-	return nil
+func (p *Publisher) ConnectToTopic(ctx context.Context, in *ConnectToTopicRequest) (*ConnectToTopicResponse, error) {
+	return &ConnectToTopicResponse{}, nil
 }
 
 // DisconnectFromTopic ...
-func (p *Publisher) DisconnectFromTopic(ctx context.Context, id int) error {
-	err := p.topicSvc.RemovePublisherFromTopic(ctx, id)
-	if err != nil {
-		return err
-	}
-	return nil
+func (p *Publisher) DisconnectFromTopic(ctx context.Context, in *DisconnectFromTopicRequest) (*DisconnectFromTopicResponse, error) {
+	return &DisconnectFromTopicResponse{}, nil
 }
 
 // PublishMessage ...
-func (p *Publisher) PublishMessage(ctx context.Context, msg string) error {
-	err := p.topicSvc.AddMessageToTopic(ctx, domain.Topic{})
-	if err != nil {
-		return err
-	}
-	return nil
+func (p *Publisher) PublishMessage(ctx context.Context, in *PublishMessageRequest) (*PublishMessageResponse, error) {
+	return &PublishMessageResponse{}, nil
 }
 
 // CheckMessageStatus ...
-func (p *Publisher) CheckMessageStatus(ctx context.Context, msg string) (string, error) {
-	status, err := p.topicSvc.GetMessageStatus(ctx, domain.Topic{})
-	if err != nil {
-		return "", err
-	}
-	return status, nil
+func (p *Publisher) CheckMessageStatus(ctx context.Context, in *CheckMessageStatusRequest) (*CheckMessageStatusResponse, error) {
+	return &CheckMessageStatusResponse{}, nil
 }

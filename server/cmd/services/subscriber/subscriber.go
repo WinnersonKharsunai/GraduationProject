@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/domain"
 	"github.com/sirupsen/logrus"
 )
@@ -21,4 +23,10 @@ func NewSubscriber(log *logrus.Logger, topic domain.TopicServicesIF) SubscriberI
 		log:      log,
 		topicSvc: topic,
 	}
+}
+
+// PublishMessage ...
+func (Subscriber) PublishMessage(ctx context.Context, msg string) error {
+
+	return nil
 }

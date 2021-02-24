@@ -4,8 +4,8 @@ package config
 type Settings struct {
 	ImqServerHost   string `env:"IMQ_SERVER_HOST" envDefault:"localhost"`
 	ImqServerPort   int    `env:"IMQ_SERVER_PORT" envDefault:"80"`
-	PublisherCount  int    `env:"PUBLISHER_COUNT" envDefault:"1"`
-	SubscriberCount int    `env:"SUBSCRIBER_COUNT" envDefault:"1"`
+	PublisherCount  int    `env:"PUBLISHER_COUNT" envDefault:"2"`
+	SubscriberCount int    `env:"SUBSCRIBER_COUNT" envDefault:"2"`
 	ShutdownGrace   int    `env:"SHUTDOWN_GRACE" envDefault:"10"`
 
 	ImqQueueHost string `env:"IMQ_QUEUE_HOST" envDefault:""`

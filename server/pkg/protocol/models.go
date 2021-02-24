@@ -1,10 +1,12 @@
 package protocol
 
+// Request ...
 type Request struct {
-	Header Header
-	Body   string
+	Header Header `json:"header"`
+	Body   string `json:"body"`
 }
 
+// Header ...
 type Header struct {
 	Version     string `json:"version"`
 	RemoteAddr  string `json:"remoteAddr"`
@@ -12,7 +14,8 @@ type Header struct {
 	Method      string `json:"method"`
 }
 
+// Response ...
 type Response struct {
 	Error string `json:"error"`
-	Body  string `json:"body"`
+	Body  []byte `json:"body"`
 }

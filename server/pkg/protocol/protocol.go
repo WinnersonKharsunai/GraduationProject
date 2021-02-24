@@ -5,11 +5,13 @@ import (
 	"errors"
 )
 
-// Protocol ...
-type Protocol struct{}
+// Protocol ..
+type Protocol interface {
+	ValidateRequestHeader(ctx context.Context) error
+}
 
 // ValidateRequestHeader ...
-func (p *Protocol) ValidateRequestHeader(ctx context.Context, hdr Header) error {
+func (hdr Header) ValidateRequestHeader(ctx context.Context) error {
 
 	if hdr.Version != "1.0" {
 		return errors.New("invalid header version")

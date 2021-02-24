@@ -10,12 +10,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/WinnersonKharsunai/GraduationProject/server/cmd/routes"
 	publisher "github.com/WinnersonKharsunai/GraduationProject/server/cmd/services/publisher"
 	subscriber "github.com/WinnersonKharsunai/GraduationProject/server/cmd/services/subscriber"
 	"github.com/WinnersonKharsunai/GraduationProject/server/config"
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/domain"
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/queue"
-	"github.com/WinnersonKharsunai/GraduationProject/server/internal/storage"
 	"github.com/WinnersonKharsunai/GraduationProject/server/pkg/server"
 	"github.com/caarlos0/env"
 	"github.com/sirupsen/logrus"
@@ -32,28 +32,21 @@ func main() {
 		log.Fatalf("main: failed to get configs: %v", err)
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", cfgs.DbUserName, cfgs.DbPassword, cfgs.DbHost, cfgs.DbPort, cfgs.DbName)
-	db, err := storage.NewMysqlDB(dsn, log)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// qSvcTarget := fmt.Sprintf("%s:%d", cfgs.ImqQueueHost, cfgs.ImqQueuePort)
-	// qSvcClient, err := grpc.DialContext(context.Background(), qSvcTarget, grpc.WithInsecure(), grpc.WithBlock())
+	// dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", cfgs.DbUserName, cfgs.DbPassword, cfgs.DbHost, cfgs.DbPort, cfgs.DbName)
+	// db, err := storage.NewMysqlDB(dsn, log)
 	// if err != nil {
-	// 	log.Fatalln(err)
+	// 	log.Fatal(err)
 	// }
-
-	// qs := queueapiv1.NewQueueServiceClient(qSvcClient)
-	// defer qSvcClient.Close()
 
 	q := queue.NewQueue(nil)
 
-	tSvc := domain.NewTopic(db, q)
+	tSvc := domain.NewTopic(nil, q)
 
 	pb := publisher.NewPublisher(log, tSvc)
 
 	sc := subscriber.NewSubscriber(log, tSvc)
+
+	handler := routes.NewHandler(pb, sc)
 
 	addr := fmt.Sprintf("%s:%d", cfgs.ImqServerHost, cfgs.ImqServerPort)
 	lis, err := net.Listen("tcp", addr)
@@ -61,7 +54,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	s := server.NewServer(log, lis, cfgs.PublisherCount, cfgs.SubscriberCount, pb, sc)
+	s := server.NewServer(log, lis, cfgs.PublisherCount, cfgs.SubscriberCount, handler)
 
 	log.Infof("main: imq-server running on port: %v", addr)
 	go func() {
