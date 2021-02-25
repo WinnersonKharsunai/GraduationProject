@@ -1,8 +1,13 @@
 package routes
 
-type requestType string
-
 const (
-	showTopicRequest  requestType = "showTopicRequest"
-	showTopicResponse requestType = "showTopicResponse"
+	showTopic            = "showTopicRequest"
+	connectToTopic       = "connectToTopicRequest"
+	disconnectFromTopic  = "disconnectFromTopicRequest"
+	publishMessage       = "publishMessageRequest"
+	checkMessageStatus   = "checkMessageStatusRequest"
+	subscribeToTopic     = "subscribeToTopicRequest"
+	unsubscribeFromTopic = "unsubscribeFromTopicRequest"
+	getSubscribedTopics  = "getSubscribedTopicsRequest"
+	getMessageFromTopic  = "getMessageFromTopicRequest"
 )

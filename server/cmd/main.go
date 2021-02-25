@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/WinnersonKharsunai/GraduationProject/server/cmd/routes"
-	publisher "github.com/WinnersonKharsunai/GraduationProject/server/cmd/services/publisher"
-	subscriber "github.com/WinnersonKharsunai/GraduationProject/server/cmd/services/subscriber"
+	"github.com/WinnersonKharsunai/GraduationProject/server/cmd/services/publisher"
+	"github.com/WinnersonKharsunai/GraduationProject/server/cmd/services/subscriber"
 	"github.com/WinnersonKharsunai/GraduationProject/server/config"
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/domain"
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/queue"

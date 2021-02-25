@@ -1,4 +1,4 @@
-package services
+package publisher
 
 import (
 	"context"
@@ -32,6 +32,7 @@ func NewPublisher(log *logrus.Logger, topic domain.TopicServicesIF) PublisherIF 
 
 // ShowTopics ...
 func (p *Publisher) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*ShowTopicResponse, error) {
+	p.log.Infof("ShowTopic: %v", in)
 	return &ShowTopicResponse{}, nil
 }
 

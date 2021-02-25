@@ -1,7 +1,9 @@
-package services
+package publisher
 
 // ShowTopicRequest holds the request details for ShowTopics
-type ShowTopicRequest struct{}
+type ShowTopicRequest struct {
+	PublisherID int `json:"publisherId" xml:"publisherId"`
+}
 
 // ShowTopicResponse holds the response details for ShowTopics
 type ShowTopicResponse struct {
