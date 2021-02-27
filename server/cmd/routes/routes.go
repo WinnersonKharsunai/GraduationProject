@@ -100,7 +100,7 @@ func processRequest(ctx context.Context, p publisher.PublisherIF, s subscriber.S
 
 	case unsubscribeFromTopic:
 		unsubscribeFromTopicRequest := &subscriber.UnsubscribeFromTopicRequest{}
-		if err := unmarshal([]byte(request.Body), unsubscribeFromTopic, request.Header.ContentType); err != nil {
+		if err := unmarshal([]byte(request.Body), unsubscribeFromTopicRequest, request.Header.ContentType); err != nil {
 			return nil, err
 		}
 		return s.UnsubscribeFromTopic(ctx, unsubscribeFromTopicRequest)

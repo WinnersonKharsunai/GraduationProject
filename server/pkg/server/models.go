@@ -6,6 +6,7 @@ const (
 	pub                   = "publisher"
 	sub                   = "subscriber"
 	failedTowriteResponse = "failed to write response to client"
+	statusConnected       = "connected"
 )
 
 type newConnection struct {

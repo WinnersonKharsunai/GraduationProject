@@ -6,7 +6,7 @@ type Queues struct {
 }
 
 type Message struct {
-	MessageID int
+	MessageID string
 	Data      string
 	CretedAt  string
 	ExpiresAt string
@@ -18,12 +18,12 @@ type SendMessageRequest struct {
 }
 
 type DeleteMessageReqest struct {
-	TopicName string
-	Message   Message
+	TopicID string
+	Message Message
 }
 
 type RetrieveMessageRequest struct {
-	TopicName string
+	TopicID string
 }
 
 type RetrieveMessageResponse struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/domain"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 )
 
@@ -33,7 +34,7 @@ func NewPublisher(log *logrus.Logger, topicService domain.TopicServicesIF) Publi
 // ShowTopics fetch all the topics that are available
 func (p *Publisher) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*ShowTopicResponse, error) {
 
-	var showTopicResponse *ShowTopicResponse
+	showTopicResponse := &ShowTopicResponse{}
 
 	topics, err := p.topicService.GetTopics(ctx, in.PublisherID)
 	if err != nil {
@@ -51,7 +52,7 @@ func (p *Publisher) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*Show
 // ConnectToTopic register publisher to topic
 func (p *Publisher) ConnectToTopic(ctx context.Context, in *ConnectToTopicRequest) (*ConnectToTopicResponse, error) {
 
-	var connectToTopicResponse *ConnectToTopicResponse
+	connectToTopicResponse := &ConnectToTopicResponse{}
 
 	err := p.topicService.RegisterPublisherToTopic(ctx, in.PublisherID, in.TopicName)
 	if err != nil {
@@ -59,13 +60,15 @@ func (p *Publisher) ConnectToTopic(ctx context.Context, in *ConnectToTopicReques
 		return nil, err
 	}
 
+	connectToTopicResponse.Status = sucessConnected
+
 	return connectToTopicResponse, nil
 }
 
 // DisconnectFromTopic deregister publisher from topic
 func (p *Publisher) DisconnectFromTopic(ctx context.Context, in *DisconnectFromTopicRequest) (*DisconnectFromTopicResponse, error) {
 
-	var disconnectFromTopicResponse *DisconnectFromTopicResponse
+	disconnectFromTopicResponse := &DisconnectFromTopicResponse{}
 
 	err := p.topicService.DeregisterPublisherFromTopic(ctx, in.PublisherID)
 	if err != nil {
@@ -73,15 +76,18 @@ func (p *Publisher) DisconnectFromTopic(ctx context.Context, in *DisconnectFromT
 		return nil, err
 	}
 
+	disconnectFromTopicResponse.Status = statusDisconnected
+
 	return disconnectFromTopicResponse, nil
 }
 
 // PublishMessage publishes new message to topic
 func (p *Publisher) PublishMessage(ctx context.Context, in *PublishMessageRequest) (*PublishMessageResponse, error) {
 
-	var publishMessageResponse *PublishMessageResponse
+	publishMessageResponse := &PublishMessageResponse{}
 
 	msg := domain.Message{
+		MessageID: uuid.New().String(),
 		Data:      in.Message.Data,
 		CretedAt:  in.Message.CretedAt,
 		ExpiresAt: in.Message.ExpiresAt,
@@ -92,6 +98,8 @@ func (p *Publisher) PublishMessage(ctx context.Context, in *PublishMessageReques
 		p.log.WithField("publisherId", in.PublisherID).Errorf("PublishMessage: failed to add message to topic: %v", err)
 		return nil, err
 	}
+
+	publishMessageResponse.Status = statusSuccessful
 
 	return publishMessageResponse, nil
 }

@@ -7,7 +7,7 @@ type Topic struct {
 }
 
 type Message struct {
-	MessageID int
+	MessageID string
 	Data      string
 	CretedAt  string
 	ExpiresAt string

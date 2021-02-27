@@ -79,7 +79,14 @@ func main() {
 		defer cancel()
 
 		var wg sync.WaitGroup
-		wg.Add(1)
+		wg.Add(2)
+
+		go func() {
+			if err := qq.Shutdown(ctx); err != nil {
+				log.Warnf("main: graceful shutdown failed: %v", err)
+			}
+			wg.Done()
+		}()
 
 		go func() {
 			if err := s.Shutdown(ctx); err != nil {

@@ -3,6 +3,7 @@ package server
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -24,6 +25,8 @@ func (s *Server) processWorker(id int) {
 			response.Error = err.Error()
 			connectionClosed = true
 		}
+
+		response.Body = []byte(statusConnected)
 
 		if err := writeToConnection(con, response); err != nil {
 			s.log.Errorf("processWorker with Id %v: %v:%v", id, failedTowriteResponse, err)
@@ -61,6 +64,11 @@ func readFromConnection(c net.Conn) (string, error) {
 }
 
 func writeToConnection(c net.Conn, response *protocol.Response) error {
-	_, err := fmt.Fprintf(c, "%v\n", *response)
+	b, err := json.Marshal(response)
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Fprintf(c, "%v\n", string(b))
 	return err
 }

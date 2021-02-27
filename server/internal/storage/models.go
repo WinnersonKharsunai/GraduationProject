@@ -1,7 +1,7 @@
 package storage
 
 type Message struct {
-	MessageID int
+	MessageID string
 	Data      string
 	CretedAt  string
 	ExpiresAt string
@@ -10,4 +10,10 @@ type Message struct {
 type Queue struct {
 	Topic map[string][]Message
 	DLQ   map[string][]Message
+}
+
+type StoreQueue struct {
+	QueuID    string
+	TopicID   string
+	MessageID string
 }

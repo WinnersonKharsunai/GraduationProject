@@ -39,11 +39,10 @@ func NewTopic(log *logrus.Logger, db storage.DatabaseIF, queue queue.ImqQueueIF)
 }
 
 // GetTopics fetches all the available topics
-func (t *TopicService) GetTopics(ctx context.Context, publisherID int) (*[]string, error) {
+func (t *TopicService) GetTopics(ctx context.Context, id int) (*[]string, error) {
 
-	topics, err := t.db.FetchAllTopics(ctx, publisherID)
+	topics, err := t.db.FetchAllTopics(ctx, id)
 	if err != nil {
-		t.log.WithField("publisherId", publisherID).Errorf("GetTopics: failed to fetch all topics: %v", err)
 		return nil, err
 	}
 
@@ -53,30 +52,36 @@ func (t *TopicService) GetTopics(ctx context.Context, publisherID int) (*[]strin
 // RegisterPublisherToTopic register publisher to topic
 func (t *TopicService) RegisterPublisherToTopic(ctx context.Context, publisherID int, topicName string) error {
 
-	currentTopicID, notFound, err := t.db.GetTopicIDFromPublisher(ctx, publisherID)
+	topicID, notFound, err := t.db.GetTopicIDFromPublisher(ctx, publisherID)
 	if err != nil {
 		t.log.WithField("publisherId", publisherID).Errorf("RegisterPublisherToTopic: failed to get topicId from Publisher: %v", err)
 		return err
 	}
 
-	topicID, err := t.db.GetTopicIDFromTopic(ctx, topicName)
+	if topicID != "" {
+		return errors.New("cannot register more than one topic at a time")
+	}
+
+	topicID, err = t.db.GetTopicIDFromTopic(ctx, topicName)
 	if err != nil {
 		t.log.WithField("publisherId", publisherID).Errorf("RegisterPublisherToTopic: failed to get topicId from Topic: %v", err)
 		return err
 	}
 
+	if topicID == "" {
+		return errors.New("topic not found")
+	}
+
 	if notFound {
-		err = t.db.InsertPublisher(ctx, publisherID, topicName)
+		err = t.db.InsertPublisher(ctx, publisherID, topicID)
 		if err != nil {
 			t.log.WithField("publisherId", publisherID).Errorf("RegisterPublisherToTopic: failed to insert publisher to topic: %v", err)
 			return err
 		}
-	}
-
-	if currentTopicID != topicID {
-		err := t.db.UpdatePublisherIDIntoPublisher(ctx, publisherID, topicID)
+	} else {
+		err = t.db.UpdateTopicIDIntoPublisher(ctx, publisherID, topicID)
 		if err != nil {
-			t.log.WithField("publisherId", publisherID).Errorf("RegisterPublisherToTopic: failed to update publisher to topic: %v", err)
+			t.log.WithField("publisherId", publisherID).Errorf("RegisterPublisherToTopic: failed to update topicId into Publisher: %v", err)
 			return err
 		}
 	}
@@ -87,7 +92,17 @@ func (t *TopicService) RegisterPublisherToTopic(ctx context.Context, publisherID
 // DeregisterPublisherFromTopic  deregister publisher from topic
 func (t *TopicService) DeregisterPublisherFromTopic(ctx context.Context, publisherID int) error {
 
-	err := t.db.RemoveTopicIDFromPublisher(ctx, publisherID)
+	_, notFound, err := t.db.GetTopicIDFromPublisher(ctx, publisherID)
+	if err != nil {
+		t.log.WithField("publisherId", publisherID).Errorf("RegisterPublisherToTopic: failed to get topicId from Publisher: %v", err)
+		return err
+	}
+
+	if notFound {
+		return errors.New("you are not registered with any topic")
+	}
+
+	err = t.db.RemoveTopicIDFromPublisher(ctx, publisherID)
 	if err != nil {
 		t.log.WithField("publisherId", publisherID).Errorf("DeregisterPublisherFromTopic: failed to insert publisher to topic: %v", err)
 		return nil
@@ -105,7 +120,7 @@ func (t *TopicService) AddMessageToTopic(ctx context.Context, publisherID int, m
 	}
 
 	if notFound {
-		return errors.New("not subscribed to any topic")
+		return errors.New("you are not register to any topic")
 	}
 
 	sendMessageRequest := queue.SendMessageRequest{
@@ -147,7 +162,7 @@ func (t *TopicService) RegisterSubscriberToTopic(ctx context.Context, subscriber
 
 	for _, topic := range topics {
 		if topicName == topic {
-			return nil
+			return errors.New("you are already subscribed to this topic")
 		}
 	}
 
@@ -177,6 +192,10 @@ func (t *TopicService) DeregisterSubscriberFromTopic(ctx context.Context, subscr
 		return err
 	}
 
+	if topicID == "" {
+		return errors.New("topic not found")
+	}
+
 	err = t.db.RemoveTopicIDFromSubscriberTopicMap(ctx, subscriberID, topicID)
 	if err != nil {
 		return err
@@ -204,12 +223,19 @@ func (t *TopicService) GetMessageStatus(ctx context.Context, topic Topic) (strin
 // GetMessage fetch the message from the queue based on the given subscriberId
 func (t *TopicService) GetMessage(ctx context.Context, subscriberID int, topicName string) (*Message, error) {
 
-	msg := t.queue.RetrieveMessage(ctx, topicName)
+	topicID, err := t.db.GetTopicIDFromTopic(ctx, topicName)
+	if err != nil {
+		return nil, err
+	}
 
-	return &Message{
+	msg := t.queue.RetrieveMessage(ctx, topicID)
+
+	message := Message{
 		MessageID: msg.MessageID,
 		Data:      msg.Data,
 		CretedAt:  msg.CretedAt,
 		ExpiresAt: msg.ExpiresAt,
-	}, nil
+	}
+
+	return &message, nil
 }

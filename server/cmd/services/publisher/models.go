@@ -1,5 +1,11 @@
 package publisher
 
+const (
+	sucessConnected    = "connected"
+	statusDisconnected = "disconnected"
+	statusSuccessful   = "successful"
+)
+
 // ShowTopicRequest holds the request details for ShowTopics
 type ShowTopicRequest struct {
 	PublisherID int `json:"publisherId" xml:"publisherId"`
@@ -17,7 +23,9 @@ type ConnectToTopicRequest struct {
 }
 
 // ConnectToTopicResponse holds the response details for ConnectToTopic
-type ConnectToTopicResponse struct{}
+type ConnectToTopicResponse struct {
+	Status string `json:"status" xml:"status"`
+}
 
 // DisconnectFromTopicRequest holds the request details for DisconnectFromTopic
 type DisconnectFromTopicRequest struct {
@@ -25,7 +33,9 @@ type DisconnectFromTopicRequest struct {
 }
 
 // DisconnectFromTopicResponse holds the response details for DisconnectFromTopic
-type DisconnectFromTopicResponse struct{}
+type DisconnectFromTopicResponse struct {
+	Status string `json:"status" xml:"status"`
+}
 
 // PublishMessageRequest holds the request details for PublishMessage
 type PublishMessageRequest struct {
@@ -41,7 +51,9 @@ type Message struct {
 }
 
 // PublishMessageResponse holds the response details for PublishMessage
-type PublishMessageResponse struct{}
+type PublishMessageResponse struct {
+	Status string `json:"status" xml:"status"`
+}
 
 // CheckMessageStatusRequest holds the request details for  CheckMessageStatus
 type CheckMessageStatusRequest struct {

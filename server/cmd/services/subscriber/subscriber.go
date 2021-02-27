@@ -15,6 +15,7 @@ type Subscriber struct {
 
 // SubscriberIF is the interface to be for the Subscriber service
 type SubscriberIF interface {
+	ShowTopics(ctx context.Context, in *ShowTopicRequest) (*ShowTopicResponse, error)
 	SubscribeToTopic(ctx context.Context, in *SubscribeToTopicRequest) (*SubscribeToTopicResponse, error)
 	UnsubscribeFromTopic(ctx context.Context, in *UnsubscribeFromTopicRequest) (*UnsubscribeFromTopicResponse, error)
 	GetSubscribedTopics(ctx context.Context, in *GetSubscribedTopicsRequest) (*GetSubscribedTopicsResponse, error)
@@ -29,8 +30,28 @@ func NewSubscriber(log *logrus.Logger, topicService domain.TopicServicesIF) Subs
 	}
 }
 
+// ShowTopics fetch all the topics that are available
+func (s *Subscriber) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*ShowTopicResponse, error) {
+
+	showTopicResponse := &ShowTopicResponse{}
+
+	topics, err := s.topicService.GetTopics(ctx, in.SubscriberID)
+	if err != nil {
+		s.log.WithField("publisherId", in.SubscriberID).Errorf("ShowTopics: failed to get topics: %v", err)
+		return nil, err
+	}
+
+	for _, topic := range *topics {
+		showTopicResponse.Topics = append(showTopicResponse.Topics, topic)
+	}
+
+	return showTopicResponse, nil
+}
+
 // SubscribeToTopic subscribes given subscriber to topic
 func (s *Subscriber) SubscribeToTopic(ctx context.Context, in *SubscribeToTopicRequest) (*SubscribeToTopicResponse, error) {
+
+	subscribeToTopicResponse := &SubscribeToTopicResponse{}
 
 	err := s.topicService.RegisterSubscriberToTopic(ctx, in.SubscriberID, in.TopicName)
 	if err != nil {
@@ -38,11 +59,15 @@ func (s *Subscriber) SubscribeToTopic(ctx context.Context, in *SubscribeToTopicR
 		return nil, err
 	}
 
-	return &SubscribeToTopicResponse{}, nil
+	subscribeToTopicResponse.Status = statusSubscribed
+
+	return subscribeToTopicResponse, nil
 }
 
 // UnsubscribeFromTopic ubsubscribes given client from topic
 func (s *Subscriber) UnsubscribeFromTopic(ctx context.Context, in *UnsubscribeFromTopicRequest) (*UnsubscribeFromTopicResponse, error) {
+
+	unsubscribeFromTopicResponse := &UnsubscribeFromTopicResponse{}
 
 	err := s.topicService.DeregisterSubscriberFromTopic(ctx, in.SubscriberID, in.TopicName)
 	if err != nil {
@@ -50,13 +75,15 @@ func (s *Subscriber) UnsubscribeFromTopic(ctx context.Context, in *UnsubscribeFr
 		return nil, err
 	}
 
-	return &UnsubscribeFromTopicResponse{}, nil
+	unsubscribeFromTopicResponse.Status = statusSuccesful
+
+	return unsubscribeFromTopicResponse, nil
 }
 
 // GetSubscribedTopics fetches all the topics subscribed by given client
 func (s *Subscriber) GetSubscribedTopics(ctx context.Context, in *GetSubscribedTopicsRequest) (*GetSubscribedTopicsResponse, error) {
 
-	var getSubscribedTopicsResponse *GetSubscribedTopicsResponse
+	getSubscribedTopicsResponse := &GetSubscribedTopicsResponse{}
 
 	topics, err := s.topicService.GetRegisteredTopic(ctx, in.SubscriberID)
 	if err != nil {
@@ -74,7 +101,7 @@ func (s *Subscriber) GetSubscribedTopics(ctx context.Context, in *GetSubscribedT
 // GetMessageFromTopic fetches message publised to a given topic
 func (s *Subscriber) GetMessageFromTopic(ctx context.Context, in *GetMessageFromTopicRequest) (*GetMessageFromTopicResponse, error) {
 
-	var getMessageFromTopicResponse *GetMessageFromTopicResponse
+	getMessageFromTopicResponse := &GetMessageFromTopicResponse{}
 
 	message, err := s.topicService.GetMessage(ctx, in.SubscriberID, in.TopicName)
 	if err != nil {

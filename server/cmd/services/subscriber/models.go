@@ -1,5 +1,20 @@
 package subscriber
 
+const (
+	statusSuccesful  = "succesful"
+	statusSubscribed = "subscribed"
+)
+
+// ShowTopicRequest holds the request details for ShowTopics
+type ShowTopicRequest struct {
+	SubscriberID int `json:"publisherId" xml:"publisherId"`
+}
+
+// ShowTopicResponse holds the response details for ShowTopics
+type ShowTopicResponse struct {
+	Topics []string `json:"topics" xml:"topics"`
+}
+
 // SubscribeToTopicRequest holds the request details for SubscribeToTopic
 type SubscribeToTopicRequest struct {
 	SubscriberID int    `json:"subscriberId" xml:"subscriberId"`
