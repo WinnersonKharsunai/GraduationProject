@@ -1,12 +1,12 @@
 package protocol
 
-// Request ...
+// Request is accepted request type for IMQ
 type Request struct {
 	Header Header `json:"header"`
 	Body   string `json:"body"`
 }
 
-// Header ...
+// Header is accepted header type for IMQ
 type Header struct {
 	Version     string `json:"version"`
 	RemoteAddr  string `json:"remoteAddr"`
@@ -14,7 +14,7 @@ type Header struct {
 	Method      string `json:"method"`
 }
 
-// Response ...
+// Response is accepted response type for IMQ
 type Response struct {
 	Error string `json:"error"`
 	Body  []byte `json:"body"`

@@ -41,8 +41,7 @@ type Message struct {
 }
 
 // PublishMessageResponse holds the response details for PublishMessage
-type PublishMessageResponse struct {
-}
+type PublishMessageResponse struct{}
 
 // CheckMessageStatusRequest holds the request details for  CheckMessageStatus
 type CheckMessageStatusRequest struct {

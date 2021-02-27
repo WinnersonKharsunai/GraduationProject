@@ -1,1 +1,0 @@
- protoc --proto_path=${GOPATH}/src --proto_path=. --go_out=plugins=grpc,paths=source_relative:./go *.proto

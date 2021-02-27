@@ -9,8 +9,8 @@ import (
 
 // Publisher is the concrete implementation for the Publisher
 type Publisher struct {
-	log      *logrus.Logger
-	topicSvc domain.TopicServicesIF
+	log          *logrus.Logger
+	topicService domain.TopicServicesIF
 }
 
 // PublisherIF is the interface for the Publisher service
@@ -23,32 +23,77 @@ type PublisherIF interface {
 }
 
 // NewPublisher is the factory function for the Publisher type
-func NewPublisher(log *logrus.Logger, topic domain.TopicServicesIF) PublisherIF {
+func NewPublisher(log *logrus.Logger, topicService domain.TopicServicesIF) PublisherIF {
 	return &Publisher{
-		log:      log,
-		topicSvc: topic,
+		log:          log,
+		topicService: topicService,
 	}
 }
 
-// ShowTopics ...
+// ShowTopics fetch all the topics that are available
 func (p *Publisher) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*ShowTopicResponse, error) {
-	p.log.Infof("ShowTopic: %v", in)
-	return &ShowTopicResponse{}, nil
+
+	var showTopicResponse *ShowTopicResponse
+
+	topics, err := p.topicService.GetTopics(ctx, in.PublisherID)
+	if err != nil {
+		p.log.WithField("publisherId", in.PublisherID).Errorf("ShowTopics: failed to get topics: %v", err)
+		return nil, err
+	}
+
+	for _, topic := range *topics {
+		showTopicResponse.Topics = append(showTopicResponse.Topics, topic)
+	}
+
+	return showTopicResponse, nil
 }
 
-// ConnectToTopic ...
+// ConnectToTopic register publisher to topic
 func (p *Publisher) ConnectToTopic(ctx context.Context, in *ConnectToTopicRequest) (*ConnectToTopicResponse, error) {
-	return &ConnectToTopicResponse{}, nil
+
+	var connectToTopicResponse *ConnectToTopicResponse
+
+	err := p.topicService.RegisterPublisherToTopic(ctx, in.PublisherID, in.TopicName)
+	if err != nil {
+		p.log.WithField("publisherId", in.PublisherID).Errorf("ConnectToTopic: failed to add publisher to topic: %v", err)
+		return nil, err
+	}
+
+	return connectToTopicResponse, nil
 }
 
-// DisconnectFromTopic ...
+// DisconnectFromTopic deregister publisher from topic
 func (p *Publisher) DisconnectFromTopic(ctx context.Context, in *DisconnectFromTopicRequest) (*DisconnectFromTopicResponse, error) {
-	return &DisconnectFromTopicResponse{}, nil
+
+	var disconnectFromTopicResponse *DisconnectFromTopicResponse
+
+	err := p.topicService.DeregisterPublisherFromTopic(ctx, in.PublisherID)
+	if err != nil {
+		p.log.WithField("publisherId", in.PublisherID).Errorf("DisconnectFromTopic: failed to remove publisher from topic: %v", err)
+		return nil, err
+	}
+
+	return disconnectFromTopicResponse, nil
 }
 
-// PublishMessage ...
+// PublishMessage publishes new message to topic
 func (p *Publisher) PublishMessage(ctx context.Context, in *PublishMessageRequest) (*PublishMessageResponse, error) {
-	return &PublishMessageResponse{}, nil
+
+	var publishMessageResponse *PublishMessageResponse
+
+	msg := domain.Message{
+		Data:      in.Message.Data,
+		CretedAt:  in.Message.CretedAt,
+		ExpiresAt: in.Message.ExpiresAt,
+	}
+
+	err := p.topicService.AddMessageToTopic(ctx, in.PublisherID, msg)
+	if err != nil {
+		p.log.WithField("publisherId", in.PublisherID).Errorf("PublishMessage: failed to add message to topic: %v", err)
+		return nil, err
+	}
+
+	return publishMessageResponse, nil
 }
 
 // CheckMessageStatus ...

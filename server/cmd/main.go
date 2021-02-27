@@ -16,6 +16,7 @@ import (
 	"github.com/WinnersonKharsunai/GraduationProject/server/config"
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/domain"
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/queue"
+	"github.com/WinnersonKharsunai/GraduationProject/server/internal/storage"
 	"github.com/WinnersonKharsunai/GraduationProject/server/pkg/server"
 	"github.com/caarlos0/env"
 	"github.com/sirupsen/logrus"
@@ -32,15 +33,19 @@ func main() {
 		log.Fatalf("main: failed to get configs: %v", err)
 	}
 
-	// dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", cfgs.DbUserName, cfgs.DbPassword, cfgs.DbHost, cfgs.DbPort, cfgs.DbName)
-	// db, err := storage.NewMysqlDB(dsn, log)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", cfgs.DbUserName, cfgs.DbPassword, cfgs.DbHost, cfgs.DbPort, cfgs.DbName)
+	db, err := storage.NewMysqlDB(dsn, log)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	q := queue.NewQueue(nil)
+	qq := queue.NewQueue(db)
 
-	tSvc := domain.NewTopic(nil, q)
+	if err := qq.Init(); err != nil {
+		log.Fatalln(err)
+	}
+
+	tSvc := domain.NewTopic(log, db, qq)
 
 	pb := publisher.NewPublisher(log, tSvc)
 

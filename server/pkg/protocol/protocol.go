@@ -5,14 +5,13 @@ import (
 	"errors"
 )
 
-// Protocol ..
-type Protocol interface {
+// ProtocolIF is the interface for the protocol
+type ProtocolIF interface {
 	ValidateRequestHeader(ctx context.Context) error
 }
 
-// ValidateRequestHeader ...
+// ValidateRequestHeader validates the request header
 func (hdr Header) ValidateRequestHeader(ctx context.Context) error {
-
 	if hdr.Version != "1.0" {
 		return errors.New("invalid header version")
 	}

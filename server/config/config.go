@@ -14,6 +14,6 @@ type Settings struct {
 	DbUserName string `env:"DB_USERNAME" envDefault:"root"`
 	DbPassword string `env:"DB_PASSWORD" envDefault:"password"`
 	DbHost     string `env:"DB_HOST" envDefault:"localhost"`
-	DbPort     int    `env:"DB_PORT" envDefault:"3308"`
-	DbName     string `env:"DB_NAME" envDefault:"messagingQueueDev"`
+	DbPort     int    `env:"DB_PORT" envDefault:"3306"`
+	DbName     string `env:"DB_NAME" envDefault:"MessagingQueue"`
 }
