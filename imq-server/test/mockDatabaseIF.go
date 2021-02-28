@@ -39,7 +39,7 @@ func (m *MockDatabaseIF) RemoveTopicIDFromPublisher(ctx context.Context, publish
 // FetchQueues mocks on DatabaseIF.FetchQueues
 func (m *MockDatabaseIF) FetchQueues(ctx context.Context) (*storage.Queue, error) {
 	args := m.Called(ctx)
-	return &storage.Queue{}, args.Error(1)
+	return args.Get(0).(*storage.Queue), args.Error(1)
 }
 
 // GetTopicIDFromPublisher mocks on DatabaseIF.GetTopicIDFromPublisher
@@ -63,7 +63,7 @@ func (m *MockDatabaseIF) InsertMessageIntoMessage(ctx context.Context, publisher
 // GetSubscribedTopics mocks on DatabaseIF.GetSubscribedTopics
 func (m *MockDatabaseIF) GetSubscribedTopics(ctx context.Context, subscriberID int) ([]string, error) {
 	args := m.Called(ctx, subscriberID)
-	return []string{}, args.Error(1)
+	return args.Get(0).([]string), args.Error(1)
 }
 
 // InsertSubscriberIDIntoSubscriber mocks on DatabaseIF.InsertSubscriberIDIntoSubscriber

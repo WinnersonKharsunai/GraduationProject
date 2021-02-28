@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/domain"
-	"github.com/WinnersonKharsunai/GraduationProject/server/internal/queue"
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/storage"
 	"github.com/WinnersonKharsunai/GraduationProject/server/test"
 	"github.com/sirupsen/logrus"
@@ -42,7 +41,8 @@ func TestGetTopics_Pass(t *testing.T) {
 	if err != nil {
 		t.Fatalf("\nexpected: nil \n\t got: %v", err)
 	}
-	if reflect.DeepEqual(resp, topics) {
+
+	if !reflect.DeepEqual(resp, topics) {
 		t.Fatalf("\nexpected: %v \n\t got: %v", topics, resp)
 	}
 }
@@ -499,38 +499,14 @@ func TestGetRegisteredTopic_GetSubscribedTopics_Pass(t *testing.T) {
 	}
 }
 
-func TestGetMessage_Pass(t *testing.T) {
-	subscriberID := 5000
-	topicName := "test"
-	topicID := "12345"
-	msg := queue.Message{
-		MessageID: "123",
-		Data:      "test data",
-	}
-
-	mockDb := &test.MockDatabaseIF{}
-	mockDb.Given(storage.DatabaseIF.GetTopicIDFromTopic).When(mock.Anything, topicName).Return(topicID, nil)
-
-	mockQueue := &test.MockQueueIF{}
-	mockDb.Given(queue.ImqQueueIF.RetrieveMessage).When(mock.Anything, topicID).Return(msg)
-
-	topic := domain.NewTopic(&logrus.Logger{}, mockDb, mockQueue)
-
-	_, err := topic.GetMessage(context.Background(), subscriberID, topicName)
-	if err != nil {
-		t.Fatalf("expected: nil \n\t got: %v", err)
-	}
-}
-
 func TestGetMessage(t *testing.T) {
 	subscriberID := 5000
 	topicName := "test"
-	topicId := "1234"
 
 	expectedErr := errors.New("failed to get topicId")
 
 	mockDb := &test.MockDatabaseIF{}
-	mockDb.Given(storage.DatabaseIF.GetTopicIDFromTopic).When(mock.Anything, topicName).Return(topicId, nil)
+	mockDb.Given(storage.DatabaseIF.GetTopicIDFromTopic).When(mock.Anything, topicName).Return("", expectedErr)
 
 	mockQueue := &test.MockQueueIF{}
 
