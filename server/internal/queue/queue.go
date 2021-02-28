@@ -2,7 +2,6 @@ package queue
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/storage"
@@ -13,7 +12,6 @@ type ImqQueueIF interface {
 	Init() error
 	SendMessage(ctx context.Context, message SendMessageRequest) error
 	RetrieveMessage(ctx context.Context, topicID string) Message
-	DeleteMessage(ctx context.Context, m DeleteMessageReqest)
 	Shutdown(ctx context.Context) error
 }
 
@@ -24,7 +22,6 @@ type Queue struct {
 	sendMessageChan           chan SendMessageRequest
 	retrieveMessageChan       chan RetrieveMessageRequest
 	retrieveMessageResponseCh chan RetrieveMessageResponse
-	deleteChan                chan DeleteMessageReqest
 	shutdownChan              chan struct{}
 	processWg                 sync.WaitGroup
 }
@@ -37,14 +34,12 @@ func NewQueue(db storage.DatabaseIF) ImqQueueIF {
 		sendMessageChan:           make(chan SendMessageRequest),
 		retrieveMessageChan:       make(chan RetrieveMessageRequest),
 		retrieveMessageResponseCh: make(chan RetrieveMessageResponse),
-		deleteChan:                make(chan DeleteMessageReqest),
 		shutdownChan:              make(chan struct{}),
 	}
 }
 
 // Init load Queue from the database
 func (q *Queue) Init() error {
-
 	ctx := context.Background()
 
 	queue, err := q.loadQueues(ctx)
@@ -87,18 +82,8 @@ func (q *Queue) RetrieveMessage(ctx context.Context, topicID string) Message {
 	}
 }
 
-// DeleteMessage pop message from the queue
-func (q *Queue) DeleteMessage(ctx context.Context, m DeleteMessageReqest) {
-	q.deleteChan <- DeleteMessageReqest{
-		TopicID: m.TopicID,
-		Message: m.Message,
-	}
-}
-
 // Shutdown gracefully shutdown the Queue Service
 func (q *Queue) Shutdown(ctx context.Context) error {
-
-	fmt.Println("Im here")
 	done := make(chan struct{})
 
 	go func() {

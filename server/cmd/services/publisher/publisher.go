@@ -20,7 +20,6 @@ type PublisherIF interface {
 	ConnectToTopic(ctx context.Context, in *ConnectToTopicRequest) (*ConnectToTopicResponse, error)
 	DisconnectFromTopic(ctx context.Context, in *DisconnectFromTopicRequest) (*DisconnectFromTopicResponse, error)
 	PublishMessage(ctx context.Context, in *PublishMessageRequest) (*PublishMessageResponse, error)
-	CheckMessageStatus(ctx context.Context, in *CheckMessageStatusRequest) (*CheckMessageStatusResponse, error)
 }
 
 // NewPublisher is the factory function for the Publisher type
@@ -33,7 +32,6 @@ func NewPublisher(log *logrus.Logger, topicService domain.TopicServicesIF) Publi
 
 // ShowTopics fetch all the topics that are available
 func (p *Publisher) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*ShowTopicResponse, error) {
-
 	showTopicResponse := &ShowTopicResponse{}
 
 	topics, err := p.topicService.GetTopics(ctx, in.PublisherID)
@@ -51,7 +49,6 @@ func (p *Publisher) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*Show
 
 // ConnectToTopic register publisher to topic
 func (p *Publisher) ConnectToTopic(ctx context.Context, in *ConnectToTopicRequest) (*ConnectToTopicResponse, error) {
-
 	connectToTopicResponse := &ConnectToTopicResponse{}
 
 	err := p.topicService.RegisterPublisherToTopic(ctx, in.PublisherID, in.TopicName)
@@ -67,7 +64,6 @@ func (p *Publisher) ConnectToTopic(ctx context.Context, in *ConnectToTopicReques
 
 // DisconnectFromTopic deregister publisher from topic
 func (p *Publisher) DisconnectFromTopic(ctx context.Context, in *DisconnectFromTopicRequest) (*DisconnectFromTopicResponse, error) {
-
 	disconnectFromTopicResponse := &DisconnectFromTopicResponse{}
 
 	err := p.topicService.DeregisterPublisherFromTopic(ctx, in.PublisherID)
@@ -83,7 +79,6 @@ func (p *Publisher) DisconnectFromTopic(ctx context.Context, in *DisconnectFromT
 
 // PublishMessage publishes new message to topic
 func (p *Publisher) PublishMessage(ctx context.Context, in *PublishMessageRequest) (*PublishMessageResponse, error) {
-
 	publishMessageResponse := &PublishMessageResponse{}
 
 	msg := domain.Message{
@@ -102,9 +97,4 @@ func (p *Publisher) PublishMessage(ctx context.Context, in *PublishMessageReques
 	publishMessageResponse.Status = statusSuccessful
 
 	return publishMessageResponse, nil
-}
-
-// CheckMessageStatus ...
-func (p *Publisher) CheckMessageStatus(ctx context.Context, in *CheckMessageStatusRequest) (*CheckMessageStatusResponse, error) {
-	return &CheckMessageStatusResponse{}, nil
 }

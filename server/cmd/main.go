@@ -23,50 +23,90 @@ import (
 )
 
 func main() {
-	// initialize logger
-	log := logrus.New()
-	log.SetFormatter(&logrus.JSONFormatter{})
+	log := initializeLogger()
 
-	// load configuration from environment variables
-	cfgs := config.Settings{}
-	if err := env.Parse(&cfgs); err != nil {
+	cfgs, err := loadConfigurations()
+	if err != nil {
 		log.Fatalf("main: failed to get configs: %v", err)
 	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", cfgs.DbUserName, cfgs.DbPassword, cfgs.DbHost, cfgs.DbPort, cfgs.DbName)
-	db, err := storage.NewMysqlDB(dsn, log)
+	db, err := connectToDatabase(cfgs)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("main: failed to connect to database: %v", err)
 	}
 
-	qq := queue.NewQueue(db)
-
-	if err := qq.Init(); err != nil {
-		log.Fatalln(err)
+	queueSvc, err := startQueue(db)
+	if err != nil {
+		log.Fatalf("main: failed to start queue service: %v", err)
 	}
 
-	tSvc := domain.NewTopic(log, db, qq)
+	handler := initializeServiceHandler(log, db, queueSvc)
 
-	pb := publisher.NewPublisher(log, tSvc)
+	serverr, addr, err := startImqServer(log, cfgs, handler)
+	if err != nil {
+		log.Fatalf("main: failed to start listener: %v", err)
+	}
 
-	sc := subscriber.NewSubscriber(log, tSvc)
+	gracefulShutdown(log, addr, serverr, queueSvc, cfgs.ShutdownGrace)
+}
 
-	handler := routes.NewHandler(pb, sc)
+func initializeLogger() *logrus.Logger {
+	log := logrus.New()
+	log.SetFormatter(&logrus.JSONFormatter{})
+	return log
+}
 
+func loadConfigurations() (config.Settings, error) {
+	cfgs := config.Settings{}
+	if err := env.Parse(&cfgs); err != nil {
+		return config.Settings{}, err
+	}
+	return cfgs, nil
+}
+
+func connectToDatabase(cfgs config.Settings) (storage.DatabaseIF, error) {
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", cfgs.DbUserName, cfgs.DbPassword, cfgs.DbHost, cfgs.DbPort, cfgs.DbName)
+	db, err := storage.NewMysqlDB(dsn)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
+func startQueue(db storage.DatabaseIF) (queue.ImqQueueIF, error) {
+	queueSvc := queue.NewQueue(db)
+	if err := queueSvc.Init(); err != nil {
+		return nil, err
+	}
+	return queueSvc, nil
+}
+
+func initializeServiceHandler(log *logrus.Logger, db storage.DatabaseIF, qSvc queue.ImqQueueIF) routes.Router {
+	topicSvc := domain.NewTopic(log, db, qSvc)
+	publisherSvc := publisher.NewPublisher(log, topicSvc)
+	subscriberSvc := subscriber.NewSubscriber(log, topicSvc)
+	return routes.NewHandler(publisherSvc, subscriberSvc)
+}
+
+func startImqServer(log *logrus.Logger, cfgs config.Settings, handler routes.Router) (*server.Server, string, error) {
 	addr := fmt.Sprintf("%s:%d", cfgs.ImqServerHost, cfgs.ImqServerPort)
+
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, addr, err
 	}
 
 	s := server.NewServer(log, lis, cfgs.PublisherCount, cfgs.SubscriberCount, handler)
-
 	log.Infof("main: imq-server running on port: %v", addr)
+
 	go func() {
 		s.Serve()
 	}()
 
-	// graceful shutdown
+	return s, addr, nil
+}
+
+func gracefulShutdown(log *logrus.Logger, addr string, servr *server.Server, queueSvc queue.ImqQueueIF, shutdownGrace int) {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 	defer close(shutdown)
@@ -74,7 +114,7 @@ func main() {
 	select {
 	case <-shutdown:
 		log.Infof("main: shutting down imq-server")
-		grace := time.Duration(time.Second * time.Duration(cfgs.ShutdownGrace))
+		grace := time.Duration(time.Second * time.Duration(shutdownGrace))
 		ctx, cancel := context.WithTimeout(context.Background(), grace)
 		defer cancel()
 
@@ -82,14 +122,14 @@ func main() {
 		wg.Add(2)
 
 		go func() {
-			if err := qq.Shutdown(ctx); err != nil {
+			if err := queueSvc.Shutdown(ctx); err != nil {
 				log.Warnf("main: graceful shutdown failed: %v", err)
 			}
 			wg.Done()
 		}()
 
 		go func() {
-			if err := s.Shutdown(ctx); err != nil {
+			if err := servr.Shutdown(ctx); err != nil {
 				log.Warnf("main: graceful shutdown failed: %v", err)
 			}
 			wg.Done()
@@ -98,5 +138,4 @@ func main() {
 
 		log.Infof("main: imq-server stopped: %v", addr)
 	}
-
 }

@@ -6,7 +6,6 @@ import (
 
 	_ "github.com/go-sql-driver/mysql" //to be used indirectly by mysql driver
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 )
 
 const mysqlDriver = "mysql"
@@ -16,7 +15,7 @@ type DatabaseIF interface {
 	Connect() error
 	Test() error
 	FetchAllTopics(ctx context.Context, id int) (*[]string, error)
-	InsertPublisher(ctx context.Context, publisherID int, topicName string) error
+	InsertPublisher(ctx context.Context, publisherID int, topicID string) error
 	UpdateTopicIDIntoPublisher(ctx context.Context, publisherID int, topicID string) error
 	RemoveTopicIDFromPublisher(ctx context.Context, publisherID int) error
 	FetchQueues(ctx context.Context) (*Queue, error)
@@ -35,14 +34,12 @@ type DatabaseIF interface {
 type MysqlDB struct {
 	Dsn string
 	Cxn *sql.DB
-	Log *logrus.Logger
 }
 
 // NewMysqlDB creates a new DatabaseIF for mysql db
-func NewMysqlDB(dataSourseName string, log *logrus.Logger) (DatabaseIF, error) {
+func NewMysqlDB(dataSourseName string) (DatabaseIF, error) {
 	mysql := &MysqlDB{
 		Dsn: dataSourseName,
-		Log: log,
 	}
 
 	if err := mysql.Connect(); err != nil {
@@ -186,10 +183,10 @@ func (m *MysqlDB) FetchAllTopics(ctx context.Context, id int) (*[]string, error)
 }
 
 // InsertPublisher insert new Publisher to Publisher table
-func (m *MysqlDB) InsertPublisher(ctx context.Context, publisherID int, topicName string) error {
+func (m *MysqlDB) InsertPublisher(ctx context.Context, publisherID int, topicID string) error {
 	stmt := `INSERT INTO Publisher (publisherId, topicId) VALUES (?,?)`
 
-	_, err := m.Cxn.Exec(stmt, publisherID, topicName)
+	_, err := m.Cxn.Exec(stmt, publisherID, topicID)
 	if err != nil {
 		return err
 	}

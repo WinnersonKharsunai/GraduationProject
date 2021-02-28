@@ -1,7 +1,7 @@
 CREATE TABLE `DLQ` (
-  `dlqId` varchar(30) NOT NULL,
-  `topicId` varchar(30) DEFAULT NULL,
-  `messageId` varchar(30) DEFAULT NULL,
+  `dlqId` varchar(45) NOT NULL,
+  `topicId` varchar(45) DEFAULT NULL,
+  `messageId` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`dlqId`),
   KEY `dlq_message_idx` (`messageId`),
   KEY `dlq_topic_idx` (`topicId`),

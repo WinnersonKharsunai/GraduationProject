@@ -15,7 +15,7 @@ type MockDatabaseIF struct {
 // FetchAllTopics mocks on DatabaseIF.FetchAllTopics
 func (m *MockDatabaseIF) FetchAllTopics(ctx context.Context, id int) (*[]string, error) {
 	args := m.Called(ctx, id)
-	return &[]string{}, args.Error(1)
+	return args.Get(0).(*[]string), args.Error(1)
 }
 
 // InsertPublisher mocks on DatabaseIF.InsertPublisher
@@ -68,7 +68,7 @@ func (m *MockDatabaseIF) GetSubscribedTopics(ctx context.Context, subscriberID i
 
 // InsertSubscriberIDIntoSubscriber mocks on DatabaseIF.InsertSubscriberIDIntoSubscriber
 func (m *MockDatabaseIF) InsertSubscriberIDIntoSubscriber(ctx context.Context, subscriberID int) error {
-	args := m.Called(ctx)
+	args := m.Called(ctx, subscriberID)
 	return args.Error(0)
 }
 

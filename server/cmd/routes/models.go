@@ -5,7 +5,6 @@ const (
 	connectToTopic       = "connectToTopicRequest"
 	disconnectFromTopic  = "disconnectFromTopicRequest"
 	publishMessage       = "publishMessageRequest"
-	checkMessageStatus   = "checkMessageStatusRequest"
 	subscribeToTopic     = "subscribeToTopicRequest"
 	unsubscribeFromTopic = "unsubscribeFromTopicRequest"
 	getSubscribedTopics  = "getSubscribedTopicsRequest"

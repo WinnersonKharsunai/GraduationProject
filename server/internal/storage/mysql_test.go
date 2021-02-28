@@ -9,7 +9,6 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/storage"
-	"github.com/sirupsen/logrus"
 )
 
 func TestGetTopicIDFromPublisher_Fail(t *testing.T) {
@@ -571,7 +570,6 @@ func mysqlMock() (sqlmock.Sqlmock, storage.MysqlDB) {
 	dbCxn, mock, _ := sqlmock.New()
 	db := storage.MysqlDB{
 		Cxn: dbCxn,
-		Log: logrus.New(),
 	}
 	return mock, db
 }

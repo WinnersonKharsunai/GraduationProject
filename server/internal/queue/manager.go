@@ -14,9 +14,9 @@ func (q *Queue) queueService(queue Queues) {
 	for !shutdown {
 		liveMesage := queue.Topic
 		deadMessage := queue.DLQ
-		fmt.Println("\n\n####Topic:", liveMesage)
-		fmt.Println("\n\n#####DLQ:", deadMessage)
-		fmt.Println("Waiting...")
+		fmt.Println("\nQueue Topic:", liveMesage)
+		fmt.Println("\nDLQ:", deadMessage)
+
 		select {
 		case <-q.shutdownChan:
 			if err := q.saveQueues(context.Background(), &Queues{Topic: liveMesage, DLQ: deadMessage}); err != nil {
@@ -60,10 +60,6 @@ func (q *Queue) queueService(queue Queues) {
 					q.retrieveMessageResponseCh <- RetrieveMessageResponse{}
 				}
 			}
-
-		case r := <-q.deleteChan:
-			queue.Topic[r.TopicID][len(queue.Topic[r.TopicID])-1] = Message{}
-			fmt.Println("\n\nAfter Delete", queue)
 		}
 	}
 	q.processWg.Done()
@@ -106,7 +102,6 @@ func (q *Queue) clearQueue(ctx context.Context) error {
 }
 
 func (q *Queue) saveQueues(ctx context.Context, queue *Queues) error {
-
 	liveMsgs := []storage.StoreQueue{}
 	deadMsgs := []storage.StoreQueue{}
 

@@ -17,11 +17,6 @@ type SendMessageRequest struct {
 	Message Message
 }
 
-type DeleteMessageReqest struct {
-	TopicID string
-	Message Message
-}
-
 type RetrieveMessageRequest struct {
 	TopicID string
 }

@@ -32,7 +32,6 @@ func NewHandler(pSvc publisher.PublisherIF, sSvc subscriber.SubscriberIF) Router
 
 // RequestRouter handles all the request and response
 func (h Handler) RequestRouter(ctx context.Context, r string) *protocol.Response {
-
 	request := protocol.Request{}
 	if err := json.Unmarshal([]byte(r), &request); err != nil {
 		return &protocol.Response{Error: err.Error()}
@@ -84,12 +83,6 @@ func processRequest(ctx context.Context, p publisher.PublisherIF, s subscriber.S
 			return nil, err
 		}
 		return p.PublishMessage(ctx, publishMessageRequest)
-	case checkMessageStatus:
-		checkMessageStatusRequest := &publisher.CheckMessageStatusRequest{}
-		if err := unmarshal([]byte(request.Body), checkMessageStatusRequest, request.Header.ContentType); err != nil {
-			return nil, err
-		}
-		return p.CheckMessageStatus(ctx, checkMessageStatusRequest)
 
 	case subscribeToTopic:
 		subscribeToTopicRequest := &subscriber.SubscribeToTopicRequest{}

@@ -32,7 +32,6 @@ func NewSubscriber(log *logrus.Logger, topicService domain.TopicServicesIF) Subs
 
 // ShowTopics fetch all the topics that are available
 func (s *Subscriber) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*ShowTopicResponse, error) {
-
 	showTopicResponse := &ShowTopicResponse{}
 
 	topics, err := s.topicService.GetTopics(ctx, in.SubscriberID)
@@ -50,7 +49,6 @@ func (s *Subscriber) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*Sho
 
 // SubscribeToTopic subscribes given subscriber to topic
 func (s *Subscriber) SubscribeToTopic(ctx context.Context, in *SubscribeToTopicRequest) (*SubscribeToTopicResponse, error) {
-
 	subscribeToTopicResponse := &SubscribeToTopicResponse{}
 
 	err := s.topicService.RegisterSubscriberToTopic(ctx, in.SubscriberID, in.TopicName)
@@ -66,7 +64,6 @@ func (s *Subscriber) SubscribeToTopic(ctx context.Context, in *SubscribeToTopicR
 
 // UnsubscribeFromTopic ubsubscribes given client from topic
 func (s *Subscriber) UnsubscribeFromTopic(ctx context.Context, in *UnsubscribeFromTopicRequest) (*UnsubscribeFromTopicResponse, error) {
-
 	unsubscribeFromTopicResponse := &UnsubscribeFromTopicResponse{}
 
 	err := s.topicService.DeregisterSubscriberFromTopic(ctx, in.SubscriberID, in.TopicName)
@@ -82,7 +79,6 @@ func (s *Subscriber) UnsubscribeFromTopic(ctx context.Context, in *UnsubscribeFr
 
 // GetSubscribedTopics fetches all the topics subscribed by given client
 func (s *Subscriber) GetSubscribedTopics(ctx context.Context, in *GetSubscribedTopicsRequest) (*GetSubscribedTopicsResponse, error) {
-
 	getSubscribedTopicsResponse := &GetSubscribedTopicsResponse{}
 
 	topics, err := s.topicService.GetRegisteredTopic(ctx, in.SubscriberID)
@@ -100,7 +96,6 @@ func (s *Subscriber) GetSubscribedTopics(ctx context.Context, in *GetSubscribedT
 
 // GetMessageFromTopic fetches message publised to a given topic
 func (s *Subscriber) GetMessageFromTopic(ctx context.Context, in *GetMessageFromTopicRequest) (*GetMessageFromTopicResponse, error) {
-
 	getMessageFromTopicResponse := &GetMessageFromTopicResponse{}
 
 	message, err := s.topicService.GetMessage(ctx, in.SubscriberID, in.TopicName)

@@ -1,7 +1,7 @@
 CREATE TABLE `SubscriberTopicMap` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `subscriberId` int(11) NOT NULL,
-  `topicId` varchar(30) NOT NULL,
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `subscriberId` int(10) NOT NULL,
+  `topicId` varchar(45) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `subID_idx` (`subscriberId`),
   KEY `topicID_idx` (`topicId`),
