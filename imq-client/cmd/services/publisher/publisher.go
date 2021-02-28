@@ -10,13 +10,13 @@ import (
 
 // Publisher is the concrete implementation for the Publisher
 type Publisher struct {
-	client   *client.Client
+	client   client.Service
 	protocol protocol.Header
 	factory  messagefactory.MessagefactoryIF
 }
 
-// PublisherService is the interface for the Publisher service
-type PublisherService interface {
+// Service is the interface for the Publisher service
+type Service interface {
 	ShowTopics(ctx context.Context, in *ShowTopicRequest) (*ShowTopicResponse, error)
 	ConnectToTopic(ctx context.Context, in *ConnectToTopicRequest) (*ConnectToTopicResponse, error)
 	DisconnectFromTopic(ctx context.Context, in *DisconnectFromTopicRequest) (*DisconnectFromTopicResponse, error)
@@ -24,7 +24,7 @@ type PublisherService interface {
 }
 
 // NewPublisher is the factory function for the Publisher type
-func NewPublisher(client *client.Client, factory messagefactory.MessagefactoryIF) PublisherService {
+func NewPublisher(client client.Service, factory messagefactory.MessagefactoryIF) Service {
 	return &Publisher{
 		client:  client,
 		factory: factory,
@@ -36,7 +36,7 @@ func (p *Publisher) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*Show
 
 	var showTopicResponse ShowTopicResponse
 
-	hdr := protocol.SetHeader(version, contentType, showTopic, p.client.Addr)
+	hdr := protocol.SetHeader(version, contentType, showTopic, p.client.GetAddress())
 
 	bodyBytes, err := p.factory.MarshalRequestBody(in, contentType)
 	if err != nil {
@@ -66,7 +66,7 @@ func (p *Publisher) ConnectToTopic(ctx context.Context, in *ConnectToTopicReques
 
 	var connectToTopicResponse *ConnectToTopicResponse
 
-	hdr := protocol.SetHeader(version, contentType, connectToTopic, p.client.Addr)
+	hdr := protocol.SetHeader(version, contentType, connectToTopic, p.client.GetAddress())
 
 	bodyBytes, err := p.factory.MarshalRequestBody(in, contentType)
 	if err != nil {
@@ -96,7 +96,7 @@ func (p *Publisher) DisconnectFromTopic(ctx context.Context, in *DisconnectFromT
 
 	var disconnectFromTopicResponse *DisconnectFromTopicResponse
 
-	hdr := protocol.SetHeader(version, contentType, disconnectFromTopic, p.client.Addr)
+	hdr := protocol.SetHeader(version, contentType, disconnectFromTopic, p.client.GetAddress())
 
 	bodyBytes, err := p.factory.MarshalRequestBody(in, contentType)
 	if err != nil {
@@ -126,7 +126,7 @@ func (p *Publisher) PublishMessage(ctx context.Context, in *PublishMessageReques
 
 	var publishMessageResponse *PublishMessageResponse
 
-	hdr := protocol.SetHeader(version, contentType, publishMessage, p.client.Addr)
+	hdr := protocol.SetHeader(version, contentType, publishMessage, p.client.GetAddress())
 
 	bodyBytes, err := p.factory.MarshalRequestBody(in, contentType)
 	if err != nil {

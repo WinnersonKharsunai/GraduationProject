@@ -1,17 +1,12 @@
 package publisher
 
 const (
-	version              = "1.0"
-	contentType          = "json"
-	showTopic            = "showTopicRequest"
-	connectToTopic       = "connectToTopicRequest"
-	disconnectFromTopic  = "disconnectFromTopicRequest"
-	publishMessage       = "publishMessageRequest"
-	checkMessageStatus   = "checkMessageStatusRequest"
-	subscribeToTopic     = "subscribeToTopicRequest"
-	unsubscribeFromTopic = "unsubscribeFromTopicRequest"
-	getSubscribedTopics  = "getSubscribedTopicsRequest"
-	getMessageFromTopic  = "getMessageFromTopicRequest"
+	version             = "1.0"
+	contentType         = "json"
+	showTopic           = "showTopicRequest"
+	connectToTopic      = "connectToTopicRequest"
+	disconnectFromTopic = "disconnectFromTopicRequest"
+	publishMessage      = "publishMessageRequest"
 )
 
 // ShowTopicRequest holds the request details for ShowTopics

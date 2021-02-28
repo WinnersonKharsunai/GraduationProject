@@ -10,13 +10,13 @@ import (
 
 // Subscriber is the concrete implementation for the Subscriber
 type Subscriber struct {
-	client   *client.Client
+	client   client.Service
 	protocol protocol.Header
 	factory  messagefactory.MessagefactoryIF
 }
 
-// SubscriberService is the interface to be for the Subscriber service
-type SubscriberService interface {
+// Service is the interface to be for the Subscriber service
+type Service interface {
 	ShowTopics(ctx context.Context, in *ShowTopicRequest) (*ShowTopicResponse, error)
 	SubscribeToTopic(ctx context.Context, in *SubscribeToTopicRequest) (*SubscribeToTopicResponse, error)
 	UnsubscribeFromTopic(ctx context.Context, in *UnsubscribeFromTopicRequest) (*UnsubscribeFromTopicResponse, error)
@@ -25,7 +25,7 @@ type SubscriberService interface {
 }
 
 // NewSubscriber is the factory function for the Subscriber
-func NewSubscriber(client *client.Client, factory messagefactory.MessagefactoryIF) SubscriberService {
+func NewSubscriber(client client.Service, factory messagefactory.MessagefactoryIF) Service {
 	return &Subscriber{
 		client:  client,
 		factory: factory,
@@ -37,7 +37,7 @@ func (s *Subscriber) ShowTopics(ctx context.Context, in *ShowTopicRequest) (*Sho
 
 	showTopicResponse := &ShowTopicResponse{}
 
-	hdr := protocol.SetHeader(version, contentType, showTopic, s.client.Addr)
+	hdr := protocol.SetHeader(version, contentType, showTopic, s.client.GetAddress())
 
 	bodyBytes, err := s.factory.MarshalRequestBody(in, contentType)
 	if err != nil {
@@ -67,7 +67,7 @@ func (s *Subscriber) GetSubscribedTopics(ctx context.Context, in *GetSubscribedT
 
 	var getSubscribedTopicsResponse *GetSubscribedTopicsResponse
 
-	hdr := protocol.SetHeader(version, contentType, getSubscribedTopics, s.client.Addr)
+	hdr := protocol.SetHeader(version, contentType, getSubscribedTopics, s.client.GetAddress())
 
 	bodyBytes, err := s.factory.MarshalRequestBody(in, contentType)
 	if err != nil {
@@ -97,7 +97,7 @@ func (s *Subscriber) SubscribeToTopic(ctx context.Context, in *SubscribeToTopicR
 
 	var subscribeToTopicResponse *SubscribeToTopicResponse
 
-	hdr := protocol.SetHeader(version, contentType, subscribeToTopic, s.client.Addr)
+	hdr := protocol.SetHeader(version, contentType, subscribeToTopic, s.client.GetAddress())
 
 	bodyBytes, err := s.factory.MarshalRequestBody(in, contentType)
 	if err != nil {
@@ -127,7 +127,7 @@ func (s *Subscriber) UnsubscribeFromTopic(ctx context.Context, in *UnsubscribeFr
 
 	var unsubscribeFromTopicResponse *UnsubscribeFromTopicResponse
 
-	hdr := protocol.SetHeader(version, contentType, unsubscribeFromTopic, s.client.Addr)
+	hdr := protocol.SetHeader(version, contentType, unsubscribeFromTopic, s.client.GetAddress())
 
 	bodyBytes, err := s.factory.MarshalRequestBody(in, contentType)
 	if err != nil {
@@ -157,7 +157,7 @@ func (s *Subscriber) GetMessageFromTopic(ctx context.Context, in *GetMessageFrom
 
 	var getMessageFromTopicResponse *GetMessageFromTopicResponse
 
-	hdr := protocol.SetHeader(version, contentType, getMessageFromTopic, s.client.Addr)
+	hdr := protocol.SetHeader(version, contentType, getMessageFromTopic, s.client.GetAddress())
 
 	bodyBytes, err := s.factory.MarshalRequestBody(in, contentType)
 	if err != nil {

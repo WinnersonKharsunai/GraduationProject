@@ -5,8 +5,8 @@ type choice string
 
 const (
 	unknown clientRole = iota
-	publisher
-	subscriber
+	publisherRole
+	subscriberRole
 
 	showAllTopics        choice = "1"
 	register             choice = "2"
@@ -22,4 +22,5 @@ const (
 	welcome           = "Welcome to ITT Messaging Queue"
 	welcomepublisher  = "You are logged in as publisher"
 	welcomeSubscriber = "You are logged in as subscriber"
+	invalidChoice     = "invalid choice!!!"
 )

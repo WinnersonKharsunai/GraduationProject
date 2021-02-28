@@ -19,8 +19,16 @@ type Client struct {
 	dialerPort int
 }
 
+// Service is the interface for the client
+type Service interface {
+	Dial() error
+	GetID() int
+	GetAddress() string
+	SendRequest(ctx context.Context, request *protocol.Request) ([]byte, error)
+}
+
 // NewClient is the factory functipn for the client
-func NewClient(addr, dialerHost string, dialerPort int) *Client {
+func NewClient(addr, dialerHost string, dialerPort int) Service {
 	return &Client{
 		Addr:       addr,
 		dialerHost: dialerHost,
@@ -50,25 +58,17 @@ func (c *Client) Dial() error {
 	return nil
 }
 
-func testConnection(c net.Conn) error {
-	data, err := bufio.NewReader(c).ReadString('\n')
-	if err != nil {
-		return err
-	}
-
-	response, err := unmarshalResponse(data)
-	if err != nil {
-		return err
-	}
-
-	if response.Error != "" {
-		return errors.New(response.Error)
-	}
-
-	return nil
+// GetAddress return cleint address
+func (c *Client) GetAddress() string {
+	return c.Addr
 }
 
-// SendRequest ...
+// GetID return client Id
+func (c *Client) GetID() int {
+	return c.dialerPort
+}
+
+// SendRequest send the request to server
 func (c *Client) SendRequest(ctx context.Context, request *protocol.Request) ([]byte, error) {
 
 	if err := writeToConnection(c.con, request); err != nil {
@@ -90,6 +90,24 @@ func (c *Client) SendRequest(ctx context.Context, request *protocol.Request) ([]
 	}
 
 	return response.Body, nil
+}
+
+func testConnection(c net.Conn) error {
+	data, err := bufio.NewReader(c).ReadString('\n')
+	if err != nil {
+		return err
+	}
+
+	response, err := unmarshalResponse(data)
+	if err != nil {
+		return err
+	}
+
+	if response.Error != "" {
+		return errors.New(response.Error)
+	}
+
+	return nil
 }
 
 func readFromConnection(c net.Conn) (string, error) {
