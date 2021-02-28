@@ -9,7 +9,6 @@ type Message struct {
 
 type Queue struct {
 	Topic map[string][]Message
-	DLQ   map[string][]Message
 }
 
 type StoreQueue struct {

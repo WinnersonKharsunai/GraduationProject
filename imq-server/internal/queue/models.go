@@ -1,10 +1,5 @@
 package queue
 
-type Queues struct {
-	Topic map[string][]Message
-	DLQ   map[string][]Message
-}
-
 type Message struct {
 	MessageID string
 	Data      string
@@ -14,13 +9,5 @@ type Message struct {
 
 type SendMessageRequest struct {
 	TopicID string
-	Message Message
-}
-
-type RetrieveMessageRequest struct {
-	TopicID string
-}
-
-type RetrieveMessageResponse struct {
 	Message Message
 }

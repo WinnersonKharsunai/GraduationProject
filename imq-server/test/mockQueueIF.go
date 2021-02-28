@@ -19,7 +19,7 @@ func (mk *MockQueueIF) SendMessage(ctx context.Context, message queue.SendMessag
 }
 
 // RetrieveMessage mocks on ImqQueueIF.RetrieveMessage
-func (mk *MockQueueIF) RetrieveMessage(ctx context.Context, topicID string) queue.Message {
+func (mk *MockQueueIF) RetrieveMessage(ctx context.Context, topicID string) (*queue.Message, error) {
 	args := mk.Called(ctx, topicID)
-	return args.Get(0).(queue.Message)
+	return args.Get(0).(*queue.Message), args.Error(1)
 }

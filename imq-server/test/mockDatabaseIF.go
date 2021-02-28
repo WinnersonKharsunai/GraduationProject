@@ -85,8 +85,8 @@ func (m *MockDatabaseIF) RemoveTopicIDFromSubscriberTopicMap(ctx context.Context
 }
 
 // SaveQueues mocks on DatabaseIF.SaveQueues
-func (m *MockDatabaseIF) SaveQueues(ctx context.Context, livequeue *[]storage.StoreQueue, deadQueue *[]storage.StoreQueue) error {
-	args := m.Called(ctx, livequeue, deadQueue)
+func (m *MockDatabaseIF) SaveQueues(ctx context.Context, queue *[]storage.StoreQueue, isLiveQueue bool) error {
+	args := m.Called(ctx, queue, isLiveQueue)
 	return args.Error(0)
 }
 

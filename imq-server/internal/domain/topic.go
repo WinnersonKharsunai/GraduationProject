@@ -214,7 +214,10 @@ func (t *TopicService) GetMessage(ctx context.Context, subscriberID int, topicNa
 		return nil, err
 	}
 
-	msg := t.queue.RetrieveMessage(ctx, topicID)
+	msg, err := t.queue.RetrieveMessage(ctx, topicID)
+	if err != nil {
+		return nil, err
+	}
 
 	message := Message{
 		MessageID: msg.MessageID,

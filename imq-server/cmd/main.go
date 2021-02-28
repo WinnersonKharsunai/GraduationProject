@@ -35,7 +35,7 @@ func main() {
 		log.Fatalf("main: failed to connect to database: %v", err)
 	}
 
-	queueSvc, err := startQueue(db)
+	queueSvc, err := startQueue(db, log)
 	if err != nil {
 		log.Fatalf("main: failed to start queue service: %v", err)
 	}
@@ -73,9 +73,9 @@ func connectToDatabase(cfgs config.Settings) (storage.DatabaseIF, error) {
 	return db, nil
 }
 
-func startQueue(db storage.DatabaseIF) (queue.ImqQueueIF, error) {
-	queueSvc := queue.NewQueue(db)
-	if err := queueSvc.Init(); err != nil {
+func startQueue(db storage.DatabaseIF, log *logrus.Logger) (queue.ImqQueueIF, error) {
+	queueSvc, err := queue.NewQueue(log, db)
+	if err != nil {
 		return nil, err
 	}
 	return queueSvc, nil
@@ -122,7 +122,7 @@ func gracefulShutdown(log *logrus.Logger, addr string, servr *server.Server, que
 		wg.Add(2)
 
 		go func() {
-			if err := queueSvc.Shutdown(ctx); err != nil {
+			if err := queueSvc.BackUpQueue(ctx); err != nil {
 				log.Warnf("main: graceful shutdown failed: %v", err)
 			}
 			wg.Done()

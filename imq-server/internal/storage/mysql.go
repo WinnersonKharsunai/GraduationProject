@@ -26,7 +26,7 @@ type DatabaseIF interface {
 	InsertSubscriberIDIntoSubscriber(ctx context.Context, subscriberID int) error
 	InsertIntoSubscriberTopicMap(ctx context.Context, subscriberID int, topicID string) error
 	RemoveTopicIDFromSubscriberTopicMap(ctx context.Context, subscriberID int, topicID string) error
-	SaveQueues(ctx context.Context, livequeue *[]StoreQueue, deadQueue *[]StoreQueue) error
+	SaveQueues(ctx context.Context, queue *[]StoreQueue, isLiveQueue bool) error
 	RemoveMessagesFromQueue(ctx context.Context) error
 }
 
@@ -278,20 +278,17 @@ func (m *MysqlDB) RemoveTopicIDFromSubscriberTopicMap(ctx context.Context, subsc
 }
 
 // SaveQueues persists all the message from topic to db
-func (m *MysqlDB) SaveQueues(ctx context.Context, livequeue *[]StoreQueue, deadQueue *[]StoreQueue) error {
-	stmt := `INSERT INTO Queue (queueId,topicId,messageId) VALUES (?,?,?)`
+func (m *MysqlDB) SaveQueues(ctx context.Context, queue *[]StoreQueue, isLiveQueue bool) error {
+	var stmt string
 
-	for _, qs := range *livequeue {
-		_, err := m.Cxn.ExecContext(ctx, stmt, qs.QueuID, qs.TopicID, qs.MessageID)
-		if err != nil {
-			return err
-		}
+	if isLiveQueue {
+		stmt = `INSERT INTO Queue (queueId,topicId,messageId) VALUES (?,?,?)`
+	} else {
+		stmt = `INSERT INTO DLQ (dlqId,topicId,messageId) VALUES (?,?,?)`
 	}
 
-	dlqStmt := `INSERT INTO DLQ (dlqId,topicId,messageId) VALUES (?,?,?)`
-
-	for _, qs := range *deadQueue {
-		_, err := m.Cxn.ExecContext(ctx, dlqStmt, qs.QueuID, qs.TopicID, qs.MessageID)
+	for _, q := range *queue {
+		_, err := m.Cxn.ExecContext(ctx, stmt, q.QueuID, q.TopicID, q.MessageID)
 		if err != nil {
 			return err
 		}

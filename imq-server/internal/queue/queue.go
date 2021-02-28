@@ -2,93 +2,94 @@ package queue
 
 import (
 	"context"
-	"sync"
+	"errors"
+	"fmt"
+	"time"
 
 	"github.com/WinnersonKharsunai/GraduationProject/server/internal/storage"
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 // ImqQueueIF is the inteerface for the Queue
 type ImqQueueIF interface {
-	Init() error
 	SendMessage(ctx context.Context, message SendMessageRequest) error
-	RetrieveMessage(ctx context.Context, topicID string) Message
-	Shutdown(ctx context.Context) error
+	RetrieveMessage(ctx context.Context, topicID string) (*Message, error)
+	BackUpQueue(ctx context.Context) error
 }
 
 // Queue is the concrete implementztion for Queue
 type Queue struct {
-	db                        storage.DatabaseIF
-	queueChan                 chan struct{}
-	sendMessageChan           chan SendMessageRequest
-	retrieveMessageChan       chan RetrieveMessageRequest
-	retrieveMessageResponseCh chan RetrieveMessageResponse
-	shutdownChan              chan struct{}
-	processWg                 sync.WaitGroup
+	log       *logrus.Logger
+	db        storage.DatabaseIF
+	LiveQueue map[string][]Message
+	DeadQueue map[string][]Message
 }
 
 // NewQueue is the factory function for the Queue
-func NewQueue(db storage.DatabaseIF) ImqQueueIF {
-	return &Queue{
-		db:                        db,
-		queueChan:                 make(chan struct{}),
-		sendMessageChan:           make(chan SendMessageRequest),
-		retrieveMessageChan:       make(chan RetrieveMessageRequest),
-		retrieveMessageResponseCh: make(chan RetrieveMessageResponse),
-		shutdownChan:              make(chan struct{}),
-	}
-}
-
-// Init load Queue from the database
-func (q *Queue) Init() error {
-	ctx := context.Background()
-
-	queue, err := q.loadQueues(ctx)
-	if err != nil {
-		return err
+func NewQueue(log *logrus.Logger, db storage.DatabaseIF) (ImqQueueIF, error) {
+	q := &Queue{
+		log:       log,
+		db:        db,
+		LiveQueue: map[string][]Message{},
+		DeadQueue: map[string][]Message{},
 	}
 
-	if err := q.clearQueue(ctx); err != nil {
-		return err
+	if err := q.loadQueue(); err != nil {
+		return nil, err
 	}
 
-	q.processWg.Add(1)
-	go q.queueService(*queue)
+	if err := q.clearQueueFromDb(); err != nil {
+		return nil, err
+	}
 
-	return nil
+	return q, nil
 }
 
 // SendMessage push message to the queue
-func (q *Queue) SendMessage(ctx context.Context, message SendMessageRequest) error {
-	q.sendMessageChan <- SendMessageRequest{
-		TopicID: message.TopicID,
-		Message: message.Message,
+func (q *Queue) SendMessage(ctx context.Context, request SendMessageRequest) error {
+	if request.TopicID == "" {
+		return errors.New("topicId cannot be empty")
 	}
+
+	if request.Message.MessageID == "" || request.Message.Data == "" {
+		return errors.New("message cannot be empty")
+	}
+
+	q.LiveQueue[request.TopicID] = append(q.LiveQueue[request.TopicID], request.Message)
+
+	fmt.Println(q.LiveQueue)
+
 	return nil
 }
 
 // RetrieveMessage pull message from the queue
-func (q *Queue) RetrieveMessage(ctx context.Context, topicID string) Message {
-	q.retrieveMessageChan <- RetrieveMessageRequest{
-		TopicID: topicID,
-	}
+func (q *Queue) RetrieveMessage(ctx context.Context, topicID string) (*Message, error) {
+	for {
+		fmt.Println(q.LiveQueue[topicID])
+		msg, err := peekMessage(q.LiveQueue[topicID])
+		if err != nil {
+			return nil, err
+		}
 
-	msg := <-q.retrieveMessageResponseCh
-
-	return Message{
-		MessageID: msg.Message.MessageID,
-		Data:      msg.Message.Data,
-		CretedAt:  msg.Message.CretedAt,
-		ExpiresAt: msg.Message.ExpiresAt,
+		if isExpired(msg.ExpiresAt) {
+			pushToDeadMessage(msg, q.DeadQueue[topicID])
+			copy(q.LiveQueue[topicID][0:], q.LiveQueue[topicID][1:])
+			q.LiveQueue[topicID] = q.LiveQueue[topicID][:len(q.LiveQueue[topicID])-1]
+		} else {
+			return &msg, nil
+		}
 	}
 }
 
-// Shutdown gracefully shutdown the Queue Service
-func (q *Queue) Shutdown(ctx context.Context) error {
+// BackUpQueue store the data from queue to db
+func (q *Queue) BackUpQueue(ctx context.Context) error {
 	done := make(chan struct{})
 
 	go func() {
-		close(q.shutdownChan)
-		q.processWg.Wait()
+		if err := q.saveQueue(ctx); err != nil {
+			q.log.Errorf("failed to backup queue: %v", err)
+		}
 		close(done)
 	}()
 
@@ -98,4 +99,97 @@ func (q *Queue) Shutdown(ctx context.Context) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	}
+}
+
+func (q *Queue) loadQueue() error {
+	liveQueue, err := q.db.FetchQueues(context.Background())
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	if len(liveQueue.Topic) > 0 {
+		for k, m := range liveQueue.Topic {
+			for _, msg := range m {
+				mm := Message{
+					MessageID: msg.MessageID,
+					Data:      msg.Data,
+					CretedAt:  msg.CretedAt,
+					ExpiresAt: msg.ExpiresAt,
+				}
+				q.LiveQueue[k] = append(q.LiveQueue[k], mm)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (q *Queue) saveQueue(ctx context.Context) error {
+	liveQueueData := getQueueData(q.LiveQueue)
+	if err := q.db.SaveQueues(ctx, &liveQueueData, true); err != nil {
+		return err
+	}
+
+	deadQueueData := getQueueData(q.LiveQueue)
+	if err := q.db.SaveQueues(ctx, &deadQueueData, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getQueueData(queue map[string][]Message) []storage.StoreQueue {
+	data := []storage.StoreQueue{}
+	for topicID, messages := range queue {
+		for _, m := range messages {
+			msg := storage.StoreQueue{
+				QueuID:    uuid.New().String(),
+				TopicID:   topicID,
+				MessageID: m.MessageID,
+			}
+			data = append(data, msg)
+		}
+	}
+	return data
+}
+
+func pushToDeadMessage(msg Message, msgs []Message) {
+	msgs = append(msgs, msg)
+}
+
+func peekMessage(msg []Message) (Message, error) {
+	if len(msg) <= 0 {
+		return Message{}, errors.New("no message present in queue")
+	}
+	return msg[0], nil
+}
+
+func isExpired(t string) bool {
+	expTime := getEpochTime(t)
+	curTime := getCurrentTime()
+	if curTime > expTime {
+		return true
+	}
+	return false
+}
+
+func (q *Queue) clearQueueFromDb() error {
+	err := q.db.RemoveMessagesFromQueue(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getEpochTime(t string) int64 {
+	thetime, _ := time.Parse("2006-01-02 15:04:05", t)
+	return thetime.Unix()
+}
+
+func getCurrentTime() int64 {
+	now := time.Now().UTC().Format("2006-01-02 15:04:05")
+	thetime, _ := time.Parse("2006-01-02 15:04:05", now)
+	return thetime.Unix()
 }
