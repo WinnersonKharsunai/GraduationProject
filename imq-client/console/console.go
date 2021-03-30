@@ -1,17 +1,11 @@
 package console
 
 import (
-<<<<<<< HEAD
 	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"os"
-=======
-	"context"
-	"errors"
-	"fmt"
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 	"time"
 
 	"github.com/WinnersonKharsunai/GraduationProject/client/cmd/services/publisher"
@@ -54,23 +48,17 @@ func (c *Console) Start(ctx context.Context) error {
 	return nil
 }
 
-<<<<<<< HEAD
 func getMessage() (publisher.Message, error) {
 	msg, err := getMessageInput()
 	if err != nil {
 		return publisher.Message{}, err
 	}
-=======
-func getMessage() publisher.Message {
-	msg := getStringInput("Enter mesage here")
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 	now := time.Now().UTC()
 
 	return publisher.Message{
 		Data:      msg,
 		CretedAt:  now.Format("2006-01-02 15:04:05"),
 		ExpiresAt: now.Add(time.Duration(time.Second * 60)).Format("2006-01-02 15:04:05"),
-<<<<<<< HEAD
 	}, nil
 }
 
@@ -85,9 +73,6 @@ func getMessageInput() (string, error) {
 	}
 
 	return msg, nil
-=======
-	}
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 }
 
 func getStringInput(msg string) string {

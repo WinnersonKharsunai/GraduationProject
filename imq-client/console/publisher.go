@@ -99,16 +99,12 @@ func processDeregisterFromTopic(ctx context.Context, svc publisher.Service, id i
 }
 
 func processPublishMessage(ctx context.Context, svc publisher.Service, id int) (*publisher.PublishMessageResponse, error) {
-<<<<<<< HEAD
 	msg, err := getMessage()
 	if err != nil {
 		return nil, err
 	}
 
 	publishMessageResponse, err := svc.PublishMessage(ctx, &publisher.PublishMessageRequest{PublisherID: id, Message: msg})
-=======
-	publishMessageResponse, err := svc.PublishMessage(ctx, &publisher.PublishMessageRequest{PublisherID: id, Message: getMessage()})
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 	if err != nil {
 		return nil, err
 	}

@@ -56,13 +56,9 @@ func (t *TopicService) RegisterPublisherToTopic(ctx context.Context, publisherID
 	}
 
 	if topicID != "" {
-<<<<<<< HEAD
 		err := errors.New("cannot register more than one topic at a time")
 		t.log.WithField("publisherId", publisherID).Errorf("RegisterPublisherToTopic: already registered to topics: %v", err)
 		return err
-=======
-		return errors.New("cannot register more than one topic at a time")
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 	}
 
 	topicID, err = t.db.GetTopicIDFromTopic(ctx, topicName)
@@ -72,11 +68,8 @@ func (t *TopicService) RegisterPublisherToTopic(ctx context.Context, publisherID
 	}
 
 	if topicID == "" {
-<<<<<<< HEAD
 		err := errors.New("topic not found")
 		t.log.WithField("publisherId", publisherID).Errorf("RegisterPublisherToTopic: failed to get topicId: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return errors.New("topic not found")
 	}
 
@@ -106,13 +99,9 @@ func (t *TopicService) DeregisterPublisherFromTopic(ctx context.Context, publish
 	}
 
 	if notFound {
-<<<<<<< HEAD
 		err := errors.New("you are not registered with any topic")
 		t.log.WithField("publisherId", publisherID).Errorf("DeregisterPublisherFromTopic: record not found in Publisher: %v", err)
 		return err
-=======
-		return errors.New("you are not registered with any topic")
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 	}
 
 	err = t.db.RemoveTopicIDFromPublisher(ctx, publisherID)
@@ -128,21 +117,14 @@ func (t *TopicService) DeregisterPublisherFromTopic(ctx context.Context, publish
 func (t *TopicService) AddMessageToTopic(ctx context.Context, publisherID int, message Message) error {
 	topicID, notFound, err := t.db.GetTopicIDFromPublisher(ctx, publisherID)
 	if err != nil {
-<<<<<<< HEAD
 		t.log.WithField("publisherId", publisherID).Errorf("AddMessageToTopic: failed to get topicId from publisher: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return err
 	}
 
 	if notFound {
-<<<<<<< HEAD
 		err := errors.New("you are not register to any topic")
 		t.log.WithField("publisherId", publisherID).Errorf("AddMessageToTopic: failed to publish, not registered to any topic: %v", err)
 		return err
-=======
-		return errors.New("you are not register to any topic")
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 	}
 
 	sendMessageRequest := queue.SendMessageRequest{
@@ -156,10 +138,7 @@ func (t *TopicService) AddMessageToTopic(ctx context.Context, publisherID int, m
 	}
 
 	if err := t.queue.SendMessage(ctx, sendMessageRequest); err != nil {
-<<<<<<< HEAD
 		t.log.WithField("publisherId", publisherID).Errorf("AddMessageToTopic: failed to send message to queue: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return err
 	}
 
@@ -172,10 +151,7 @@ func (t *TopicService) AddMessageToTopic(ctx context.Context, publisherID int, m
 
 	err = t.db.InsertMessageIntoMessage(ctx, publisherID, topicID, msg)
 	if err != nil {
-<<<<<<< HEAD
 		t.log.WithField("publisherId", publisherID).Errorf("AddMessageToTopic: failed to store message: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return err
 	}
 
@@ -186,49 +162,33 @@ func (t *TopicService) AddMessageToTopic(ctx context.Context, publisherID int, m
 func (t *TopicService) RegisterSubscriberToTopic(ctx context.Context, subscriberID int, topicName string) error {
 	topics, err := t.db.GetSubscribedTopics(ctx, subscriberID)
 	if err != nil {
-<<<<<<< HEAD
 		t.log.WithField("subscriberId", subscriberID).Errorf("RegisterSubscriberToTopic: failed to get subscribed topics: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return err
 	}
 
 	for _, topic := range topics {
 		if topicName == topic {
-<<<<<<< HEAD
 			err := errors.New("you are already subscribed to this topic")
 			t.log.WithField("subscriberId", subscriberID).Errorf("RegisterSubscriberToTopic: found subscribed topic: %v", err)
 			return err
-=======
-			return errors.New("you are already subscribed to this topic")
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		}
 	}
 
 	topicID, err := t.db.GetTopicIDFromTopic(ctx, topicName)
 	if err != nil {
-<<<<<<< HEAD
 		t.log.WithField("subscriberId", subscriberID).Errorf("RegisterSubscriberToTopic: failed to get topicId from topics: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return err
 	}
 
 	err = t.db.InsertSubscriberIDIntoSubscriber(ctx, subscriberID)
 	if err != nil {
-<<<<<<< HEAD
 		t.log.WithField("subscriberId", subscriberID).Errorf("RegisterSubscriberToTopic: failed to save subscriberId: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return err
 	}
 
 	err = t.db.InsertIntoSubscriberTopicMap(ctx, subscriberID, topicID)
 	if err != nil {
-<<<<<<< HEAD
 		t.log.WithField("subscriberId", subscriberID).Errorf("RegisterSubscriberToTopic: failed to save mapped topic for subscriber: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return err
 	}
 
@@ -239,29 +199,19 @@ func (t *TopicService) RegisterSubscriberToTopic(ctx context.Context, subscriber
 func (t *TopicService) DeregisterSubscriberFromTopic(ctx context.Context, subscriberID int, topicName string) error {
 	topicID, err := t.db.GetTopicIDFromTopic(ctx, topicName)
 	if err != nil {
-<<<<<<< HEAD
 		t.log.WithField("subscriberId", subscriberID).Errorf("DeregisterSubscriberFromTopic: failed to get topicId from topic: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return err
 	}
 
 	if topicID == "" {
-<<<<<<< HEAD
 		err := errors.New("topic not found")
 		t.log.WithField("subscriberId", subscriberID).Errorf("DeregisterSubscriberFromTopic: no record found for the given topic name: %v", err)
 		return err
-=======
-		return errors.New("topic not found")
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 	}
 
 	err = t.db.RemoveTopicIDFromSubscriberTopicMap(ctx, subscriberID, topicID)
 	if err != nil {
-<<<<<<< HEAD
 		t.log.WithField("subscriberId", subscriberID).Errorf("DeregisterSubscriberFromTopic: failed to remove subscriber mapping to topic: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return err
 	}
 
@@ -272,10 +222,7 @@ func (t *TopicService) DeregisterSubscriberFromTopic(ctx context.Context, subscr
 func (t *TopicService) GetRegisteredTopic(ctx context.Context, subscriberID int) (*[]string, error) {
 	topics, err := t.db.GetSubscribedTopics(ctx, subscriberID)
 	if err != nil {
-<<<<<<< HEAD
 		t.log.WithField("subscriberId", subscriberID).Errorf("GetRegisteredTopic: failed to get subscribed topics: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return nil, err
 	}
 
@@ -286,19 +233,13 @@ func (t *TopicService) GetRegisteredTopic(ctx context.Context, subscriberID int)
 func (t *TopicService) GetMessage(ctx context.Context, subscriberID int, topicName string) (*Message, error) {
 	topicID, err := t.db.GetTopicIDFromTopic(ctx, topicName)
 	if err != nil {
-<<<<<<< HEAD
 		t.log.WithField("subscriberId", subscriberID).Errorf("GetMessage: failed to get topicid from topic: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return nil, err
 	}
 
 	msg, err := t.queue.RetrieveMessage(ctx, topicID)
 	if err != nil {
-<<<<<<< HEAD
 		t.log.WithField("subscriberId", subscriberID).Errorf("GetMessage: failed to retrieve message from queue: %v", err)
-=======
->>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 		return nil, err
 	}
 
