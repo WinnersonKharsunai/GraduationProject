@@ -25,7 +25,11 @@ func TestSendMessage_EmptyTopicId_Fail(t *testing.T) {
 		},
 	}
 
+<<<<<<< HEAD
 	expectedErr := errors.New("you are not register to any topics")
+=======
+	expectedErr := errors.New("topicId cannot be empty")
+>>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 
 	mockDb := &test.MockDatabaseIF{}
 	mockDb.Given(storage.DatabaseIF.FetchQueues).When(mock.Anything).Return(&queueData, nil)

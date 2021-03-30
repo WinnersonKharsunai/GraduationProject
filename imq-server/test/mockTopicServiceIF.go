@@ -36,6 +36,15 @@ func (m *MockTopicServiceIF) AddMessageToTopic(ctx context.Context, publisherID 
 	return args.Error(0)
 }
 
+<<<<<<< HEAD
+=======
+// GetMessageStatus mocks on TopicServiceIF.GetMessageStatus
+func (m *MockTopicServiceIF) GetMessageStatus(ctx context.Context, topic domain.Topic) (string, error) {
+	args := m.Called(ctx, topic)
+	return args.String(0), args.Error(1)
+}
+
+>>>>>>> 9fe39465475b121a78fe3f5e4b7a5638b6c0a469
 // GetMessage mocks on TopicServiceIF.GetMessage
 func (m *MockTopicServiceIF) GetMessage(ctx context.Context, subscriberID int, topicName string) (*domain.Message, error) {
 	args := m.Called(ctx, subscriberID, topicName)
